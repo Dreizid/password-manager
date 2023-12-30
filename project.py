@@ -32,7 +32,7 @@ def main():
                 case _:
                     break
     else:
-        filename.new_user("C:\\Users\Andrei\\Desktop\\VS code")
+        filename.new_user("C:\\Users\Andrei\\Desktop\\VScode")
         master_password = input("Enter a master password")
         match_password(filename, master_password)
 
@@ -132,8 +132,11 @@ def byte_salt(filename):
 
 def validate_password(filehandler, password):
     try:
+        print(password)
         salt = byte_salt(filehandler)
+        print(salt)
         key = generate_key(password, salt)
+        print(key)
         encryption = Fernet(key)
 
         json = filehandler.load()
@@ -146,12 +149,16 @@ def validate_password(filehandler, password):
     return True
 
 def match_password(filehandler, password):
+    print(password)
     random_word = bytes(generate_password(10), 'utf-8')
     salt = byte_salt(filehandler)
+    print(salt)
     key = generate_key(password, salt)
     encryption = Fernet(key)
     word = encryption.encrypt(random_word)
     str_word = base64.b64encode(word).decode('utf-8')
+    print("matchpass")
+    print(key)
     filehandler.save("User_info", {"Random_word": str_word})
 
 def generate_password(length=12):

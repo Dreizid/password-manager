@@ -53,6 +53,7 @@ class LoginPage(Frame):
         self.new_frame = Frame(self)
         self.invalid_user = Label(self.new_frame, text="Username or password doesnt exist!")
         self.invalid_user.pack(pady=(10, 10), side="top")
+        self.packed_frames.append(self.new_frame)
 
     def pack_all(self):
         self._TOGGLE_PASSWORD = True
@@ -80,11 +81,16 @@ class LoginPage(Frame):
 
     def authenticate(self):
         login_password = self.password_entry.get()
-        if validate_password(self.file, self.login_password):
+        if validate_password(self.file, login_password):
             self.login_success(login_password)
 
     def login_success(self, password):
-        self.home_page = HomePage(self.file, password, self.master)
+        for frame in self.packed_frames:
+            frame.pack_forget()
+        self.pack_forget()
+        home_page = HomePage(self.file, password, self.master)
+        home_page.page_logic()
+        home_page.pack_all()
 
     def register(self):
         for frame in self.packed_frames:
@@ -178,9 +184,9 @@ class RegistrationPage(Frame):
                 self.already_registered()
                 return
         if password == conf_password:
-            filepath = "C:\\Users\Andrei\\Desktop\\VS code\\Users" 
+            filepath = "C:\\Users\Andrei\\Desktop\\VScode\\Users" 
             file.new_user(filepath)
-            match_password(file, username)
+            match_password(file, password)
             
 
     def already_registered(self):
@@ -231,20 +237,30 @@ class HomePage(Frame):
         self.title_frame.pack()
         self.packed_frames.append(self.title_frame)
 
+    def button_part(self):
+        add_website_button_frame = Frame(self)
+        add_website_button = Button(add_website_button_frame, text="Add an account", anchor="s")
+        add_website_button.pack(side="bottom")
+        add_website_button_frame.pack(side="bottom", pady=(20, 20))
+
     def page_logic(self):
         data = decrypt(self.file, self.password)
-        prev = None
-        self.websites = []
-        height = 0
-        for i, user in enumerate(data):
-            if user["Website"] != prev:
-                account_page = AccountPage(self.password , self.file, user["Website"], self)
-                self.websites.append(account_page)
-                prev = user["Website"]
-                self.websites_list.insert(i, user["Website"])
-                height += 1
-            account_page.accounts.append({"Username": user["Username"], "Password": user["Password"]})
-        self.websites_list.config(height=height)
+        if not data:
+            self.no_accounts()
+        else:
+            prev = None
+            self.websites = []
+            height = 0
+            for i, user in enumerate(data):
+                if user["Website"] != prev:
+                    account_page = AccountPage(self.password , self.file, user["Website"], self)
+                    self.websites.append(account_page)
+                    prev = user["Website"]
+                    self.websites_list.insert(i, user["Website"])
+                    height += 1
+                account_page.accounts.append({"Username": user["Username"], "Password": user["Password"]})
+            self.websites_list.config(height=height)
+            self.websites_list.pack(pady=(10, 10))
 
     def on_click(self, event):
         selected_index = self.websites_list.curselection()
@@ -255,16 +271,20 @@ class HomePage(Frame):
                     self.pack_forget_all()
                     website.pack_all()
 
+    def no_accounts(self):
+        self.no_account_label = Label(self, text="No websites added yet.")
+
     def pack_forget_all(self):
         for frame in self.packed_frames:
             frame.pack_forget()
 
     def pack_all(self):
         self.title_part()
+        self.no_account_label.pack()
+        self.button_part()
         self.color(bg="#1d1e21", tc="#0abf98")
-        self.websites_list.pack(pady=(10, 10))
         self.packed_frames.append(self.websites_list)
-        self.pack()
+        self.pack(expand=True, fill="both")
 
     def color(self, **kwargs):
         for frame in self.packed_frames:
@@ -461,9 +481,9 @@ if __name__ == "__main__":
     root.geometry("300x400")
     root.config(bg="#1d1e21")
 
-    # login_page = LoginPage(root)
-    # login_page.pack_all()
-    # login_page.color(bg="#1d1e21", tc="#0abf98")
+    #login_page = LoginPage(root)
+    #login_page.pack_all()
+    #login_page.color(bg="#1d1e21", tc="#0abf98")
     file = SaveFile("Rei")
     home = HomePage(file, "hello", root)
     home.page_logic()
