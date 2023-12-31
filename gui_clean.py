@@ -239,9 +239,10 @@ class HomePage(Frame):
 
     def button_part(self):
         add_website_button_frame = Frame(self)
-        add_website_button = Button(add_website_button_frame, text="Add an account", anchor="s")
+        add_website_button = Button(add_website_button_frame, text="Add a website", command=self.add_website, anchor="s")
         add_website_button.pack(side="bottom")
         add_website_button_frame.pack(side="bottom", pady=(20, 20))
+        self.packed_frames.append(add_website_button_frame)
 
     def page_logic(self):
         data = decrypt(self.file, self.password)
@@ -260,7 +261,6 @@ class HomePage(Frame):
                     height += 1
                 account_page.accounts.append({"Username": user["Username"], "Password": user["Password"]})
             self.websites_list.config(height=height)
-            self.websites_list.pack(pady=(10, 10))
 
     def on_click(self, event):
         selected_index = self.websites_list.curselection()
@@ -271,16 +271,28 @@ class HomePage(Frame):
                     self.pack_forget_all()
                     website.pack_all()
 
+    def add_website(self):
+        for frame in self.packed_frames:
+            frame.pack_forget()
+        new_website = AddWebsitePage(self.file, self.password, self)
+        new_website.pack_all()
+
     def no_accounts(self):
-        self.no_account_label = Label(self, text="No websites added yet.")
+        self.no_account_label_frame = Frame(self)
+        no_account_label = Label(self.no_account_label_frame, text="No websites added yet.")
+        no_account_label.pack()        
+        self.no_account_label_frame.pack()
+        self.packed_frames.append(self.no_account_label_frame)
 
     def pack_forget_all(self):
         for frame in self.packed_frames:
             frame.pack_forget()
+        self.websites_list.delete(0, END)
 
     def pack_all(self):
         self.title_part()
-        self.no_account_label.pack()
+        self.page_logic()
+        self.websites_list.pack(pady=(10, 10))
         self.button_part()
         self.color(bg="#1d1e21", tc="#0abf98")
         self.packed_frames.append(self.websites_list)
@@ -293,7 +305,61 @@ class HomePage(Frame):
         self.title_label.config(bg=kwargs.get("bg", None), fg=kwargs.get("tc", None))
         self.websites_list.config(bg=kwargs.get("bg", None), fg="white", borderwidth=0, highlightthickness=0, selectbackground="#131416", activestyle="none", width=15)
 
-    
+class AddWebsitePage(Frame):
+
+    def __init__(self, file, password, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.master = master
+        self.file = file
+        self.password = password
+        self.packed_frames = []
+
+    def title_part(self):
+        title_frame = Frame(self)
+        title = Label(title_frame, text="Add a\nwebsite", font=("COPPERPLATE GOTHIC BOLD", 30))
+        title_frame.pack(pady=(20, 20))
+        title.pack()
+        self.packed_frames.append(title_frame)
+
+    def entry_part(self):
+        padding = 5
+        self.entry_frame = Frame(self)
+        self.website_name = LabeledEntry(self.entry_frame, placeholder="Website", width=18, font=("Arial", 12))
+        self.entry_username = LabeledEntry(self.entry_frame, placeholder="Username", width=18, font=("Arial", 12))
+        self.entry_password = LabeledEntry(self.entry_frame, placeholder="Password", width=18, font=("Arial", 12))
+        self.entry_frame.pack(pady=(20, 20))
+        self.website_name.pack(pady=(padding, padding))
+        self.entry_username.pack(pady=(padding, padding))
+        self.entry_password.pack(pady=(padding, padding))
+        self.packed_frames.append(self.entry_frame)
+
+    def button_part(self):
+        self.add_button_frame = Frame(self)
+        add_button = Button(self.add_button_frame, text="Add account", command=self.add_website)
+        self.add_button_frame.pack(pady=(20, 20))
+        add_button.pack()
+        self.packed_frames.append(self.add_button_frame)
+
+    def add_website(self):
+        website_name = self.website_name.get()
+        username = self.entry_username.get()
+        password = self.entry_password.get()
+        add_account(self.file, self.password, website_name, username, password)
+        self.forget_all()
+        self.master.pack_all()
+
+    def forget_all(self):
+        for frame in self.packed_frames:
+            frame.pack_forget()
+        self.pack_forget()
+
+    def pack_all(self):
+        self.title_part()
+        self.entry_part()
+        self.button_part()
+        self.pack()
+
+        
 
 class AccountPage(Frame):
 
@@ -305,6 +371,7 @@ class AccountPage(Frame):
         self.master = master
         self.accounts = []
         self.packed_frames = []
+
 
     def scroll(self):
         canvas = Canvas(self, width=280, height=400, borderwidth=0, highlightthickness=0)
@@ -328,6 +395,7 @@ class AccountPage(Frame):
         self.packed_frames.append(self.title_frame)
 
     def load_labels(self): 
+        text_width = 0
         text_color = "white"
         i = 0
         self.account_frames = []
@@ -345,7 +413,8 @@ class AccountPage(Frame):
             username_label = ClipboardLabel(account_frame,
                                             text=f"Username: {account['Username']}", data=account['Username'],
                                             anchor="w",
-                                            width=20, font=("Arial", 12),
+                                            width=text_width,
+                                            font=("Arial", 12),
                                             fg=text_color)
             username_label.pack()
 
@@ -353,13 +422,16 @@ class AccountPage(Frame):
             password_label = ClipboardLabel(account_frame,
                                             text=f"Password: {account['Password']}", data=account['Password'],
                                             anchor="w",
-                                            width=20, font=("Arial", 12),
+                                            width=text_width,
+                                            font=("Arial", 12),
                                             fg=text_color)
             password_label.pack()
+            self.popup_menu(account_frame)
+            account_frame.bind("<Button-3>", self.do_popup)
             self.packed_frames.append(account_no)
             self.packed_frames.append(username_label)
             self.packed_frames.append(password_label)
-            self.packed_frames.append(account_frame)
+            #self.packed_frames.append(account_frame)
 
         # Back button
         back_button = Button(self.new_frame, text="Back", width=8, command=self.back_to_home)
@@ -371,6 +443,26 @@ class AccountPage(Frame):
         add_account_button.pack(side="right", padx=(30,0), pady=(0, 20))
         self.packed_frames.append(add_account_button)
 
+    def do_popup(self, event):
+        try:
+            print("hello")
+            self.menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            print("hello")
+            self.menu.grab_release()
+
+    def popup_menu(self, frame):
+        self.menu = Menu(root, tearoff=0)
+        self.menu.add_command(label="Edit", command=self.edit)
+        self.menu.add_command(label="Remove", command=self.remove)
+
+
+    def edit(self):
+        pass
+
+    def remove(self):
+        remove_account(self.file, self.website, self.password)
+
     def back_to_home(self):
         self.forget_all()
         self.master.pack_all()
@@ -378,7 +470,7 @@ class AccountPage(Frame):
     def add_account_page(self, event):
         self.forget_all()
         self.pack()
-        AddAccountPage(self.file, self.website, self).pack()
+        AddAccountPage(self.file, self.password, self.website, self).pack()
 
     def forget_all(self):
         for frame in self.packed_frames:
@@ -392,17 +484,18 @@ class AccountPage(Frame):
 
     def color(self, **kwargs):
         for frame in self.packed_frames:
-            frame.config(bg=kwargs.get("bg", None))
+            frame.config(bg="red")
         self.config(bg=kwargs.get("bg", None))
         self.title_label.config(bg=kwargs.get("bg", None), fg=kwargs.get("tc", None))
             
 
 class AddAccountPage(Frame):
-    def __init__(self, file, website, master, **kwargs):
+    def __init__(self, file, password, website, master, **kwargs):
         super().__init__(master, kwargs)
         self.master = master
         self.file = file
         self.website = website
+        self.password = password
         self.packed_frames = []
         self.pack_all()
 
@@ -435,8 +528,8 @@ class AddAccountPage(Frame):
         save_button.pack(pady=(0, 10), side="right")
 
         back_button = Button(add_acc_web_frame,
-                             text="Back",
-                             command=self.back)
+                            text="Back",
+                            command=self.back)
         back_button.pack(pady=(0,10), side="left")
         self.packed_frames.append(add_acc_web_frame)
         add_acc_web_frame.pack()
@@ -477,16 +570,17 @@ class AddAccountPage(Frame):
         self.title_label.config(bg=kwargs.get("bg", None), fg=kwargs.get("tc", None))
 
 if __name__ == "__main__":
+    global root
     root = Tk()
     root.geometry("300x400")
     root.config(bg="#1d1e21")
 
-    #login_page = LoginPage(root)
-    #login_page.pack_all()
-    #login_page.color(bg="#1d1e21", tc="#0abf98")
+    """login_page = LoginPage(root)
+    login_page.pack_all()
+    login_page.color(bg="#1d1e21", tc="#0abf98")
+    """
     file = SaveFile("Rei")
     home = HomePage(file, "hello", root)
-    home.page_logic()
     home.pack_all()
 
     root.mainloop()

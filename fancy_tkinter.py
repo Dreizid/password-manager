@@ -39,3 +39,11 @@ class ClipboardText(Text):
     def copy_to_clipboard(self, event):
         pyperclip.copy(self.data)
 
+class MenuFrame(Frame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.bind("<Button-3>", self.popup)
+
+    def popup(self, event):
+        print("hi")
+
