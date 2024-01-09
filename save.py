@@ -77,22 +77,36 @@ class SaveFile:
 
         Parameters:
         - website (str): Website name
-        - delete (str): dictionary pair to be removed
+        - delete (int): dictionary pair to be removed
 
         Returns:
         - None
         """
         try:
-            with open(self._filename, "r") as file:
+            with open(self._path, "r") as file:
                 data = json.load(file)
         except FileNotFoundError:
             raise FileNotFoundError
 
         del data[self._username][website][delete]
-        with open(self._filename, "w") as file:
+        with open(self._path, "w") as file:
             json.dump(data, file, indent=2)
         return 
 
+    def edit(self, website: str, index: int, replace: dict) -> None:
+        """
+        Edit entries in the file.
+        """
+        try: 
+            with open(self._path, "r"):
+                data = json.load()
+        except FileNotFoundError:
+            raise FileNotFoundError
+        
+        data[self._username][website][index]["Username"] = replace.get("Username", None)
+        data[self._username][website][index]["Password"] = replace.get("Password", None)
+
+    
         
     def new_user(self, user_path: str ="Default") -> None:
         """

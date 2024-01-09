@@ -122,6 +122,7 @@ def remove_account(filehandler, website, password):
         print("That account doesnt exist!")
         return
 
+
 def byte_salt(filename):
     data = filename.load()
     username = filename._username

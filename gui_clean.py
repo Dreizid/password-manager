@@ -395,43 +395,14 @@ class AccountPage(Frame):
         self.packed_frames.append(self.title_frame)
 
     def load_labels(self): 
-        text_width = 0
-        text_color = "white"
         i = 0
         self.account_frames = []
         self.scroll()
         self.title_part()
-        context_menu = Menu(self, tearoff=0)
         for i, account in enumerate(self.accounts):
-            account_frame = Frame(self.new_frame)
-            account_frame.pack(pady=(0, 30))
-            # Frame for each account for the website
-            account_no = Label(account_frame, text=f"Account {i + 1}", font=("Arial", 10), anchor="w", fg=text_color)
-            account_no.pack()
-
-            # Username label
-            username_label = ClipboardLabel(account_frame,
-                                            text=f"Username: {account['Username']}", data=account['Username'],
-                                            anchor="w",
-                                            width=text_width,
-                                            font=("Arial", 12),
-                                            fg=text_color)
-            username_label.pack()
-
-            # Password label
-            password_label = ClipboardLabel(account_frame,
-                                            text=f"Password: {account['Password']}", data=account['Password'],
-                                            anchor="w",
-                                            width=text_width,
-                                            font=("Arial", 12),
-                                            fg=text_color)
-            password_label.pack()
-            self.popup_menu(account_frame)
-            account_frame.bind("<Button-3>", self.do_popup)
-            self.packed_frames.append(account_no)
-            self.packed_frames.append(username_label)
-            self.packed_frames.append(password_label)
-            #self.packed_frames.append(account_frame)
+            account_frame = AccountLabels(i, account, root, self.file, self.website, self.new_frame)
+            account_frame.color(bg="#1d1e21", tc="white")
+            account_frame.pack(pady=(0, 10))
 
         # Back button
         back_button = Button(self.new_frame, text="Back", width=8, command=self.back_to_home)
@@ -443,25 +414,8 @@ class AccountPage(Frame):
         add_account_button.pack(side="right", padx=(30,0), pady=(0, 20))
         self.packed_frames.append(add_account_button)
 
-    def do_popup(self, event):
-        try:
-            print("hello")
-            self.menu.tk_popup(event.x_root, event.y_root)
-        finally:
-            print("hello")
-            self.menu.grab_release()
-
-    def popup_menu(self, frame):
-        self.menu = Menu(root, tearoff=0)
-        self.menu.add_command(label="Edit", command=self.edit)
-        self.menu.add_command(label="Remove", command=self.remove)
-
-
-    def edit(self):
-        pass
-
-    def remove(self):
-        remove_account(self.file, self.website, self.password)
+    def call_edit(self):
+        edit = EditPage(self)
 
     def back_to_home(self):
         self.forget_all()
@@ -478,13 +432,13 @@ class AccountPage(Frame):
         self.pack_forget()
 
     def pack_all(self):
-        self.pack() 
         self.load_labels()
         self.color(bg="#1d1e21", tc="#0abf98")
+        self.pack() 
 
     def color(self, **kwargs):
         for frame in self.packed_frames:
-            frame.config(bg="red")
+            frame.config(bg=kwargs.get("bg", None))
         self.config(bg=kwargs.get("bg", None))
         self.title_label.config(bg=kwargs.get("bg", None), fg=kwargs.get("tc", None))
             
@@ -568,6 +522,33 @@ class AddAccountPage(Frame):
             frame.config(bg=kwargs.get("bg", None))
         self.config(bg=kwargs.get("bg", None))
         self.title_label.config(bg=kwargs.get("bg", None), fg=kwargs.get("tc", None))
+
+
+class EditPage(Frame):
+    def __init__(self, file, index, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.index = index
+        self.file = file
+
+    def title_part(self):
+        title_frame = Frame(self)
+        title_label = Label(title_frame, text="Edit account", font=("COPPERPLATE GOTHIC BOLD", 30))
+        title_frame.pack()
+        title_label.pack()
+
+    def entry_part(self):
+        entry_frame = Frame(self)
+        entry_widget_name = LabeledEntry(self, placeholder="Username")
+        entry_widget_pass = LabeledEntry(self, placeholder="Password")
+        entry_frame.pack()
+        entry_widget_name.pack()
+        entry_widget_pass.pack()
+
+    def button_part(self):
+        button_frame = Frame(self)
+        button_submit = Button(button_frame, text="Submit")
+        button_frame.pack()
+        button_submit.pack()
 
 if __name__ == "__main__":
     global root
