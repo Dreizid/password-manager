@@ -23,7 +23,7 @@ class SaveFile:
             self._username = user
             self._filename = f"{user}.json"
             self._config_path = os.path.join(os.path.expanduser("~"), self.CONFIG_FILE_NAME)
-            self._path = self.get_path()
+            self._path = f"C:\\Users\\Andrei\\Desktop\\VScode\\Users\\{self._filename}"
 
     def get_path(self) -> str:
         user_config = self.load_user_config()
@@ -77,22 +77,36 @@ class SaveFile:
 
         Parameters:
         - website (str): Website name
-        - delete (str): dictionary pair to be removed
+        - delete (int): dictionary pair to be removed
 
         Returns:
         - None
         """
         try:
-            with open(self._filename, "r") as file:
+            with open(self._path, "r") as file:
                 data = json.load(file)
         except FileNotFoundError:
             raise FileNotFoundError
 
         del data[self._username][website][delete]
-        with open(self._filename, "w") as file:
+        with open(self._path, "w") as file:
             json.dump(data, file, indent=2)
         return 
 
+    def edit(self, website: str, index: int, replace: dict) -> None:
+        """
+        Edit entries in the file.
+        """
+        try: 
+            with open(self._path, "r"):
+                data = json.load()
+        except FileNotFoundError:
+            raise FileNotFoundError
+        
+        data[self._username][website][index]["Username"] = replace.get("Username", None)
+        data[self._username][website][index]["Password"] = replace.get("Password", None)
+
+    
         
     def new_user(self, user_path: str ="Default") -> None:
         """
@@ -112,10 +126,13 @@ class SaveFile:
         """
         Load the user's configuration.
         """
-        with open(self._config_path, "r") as file:
-            user_config = json.load(file)
+        try:
+            with open(self._config_path, "r") as file:
+                user_config = json.load(file)
 
-        return user_config
+            return user_config
+        except FileNotFoundError:
+            self.new_user()
 
     def save_user_config(self, user_path: str =None) -> None:
         """
@@ -142,7 +159,7 @@ class SaveFile:
             with open(self._config_path, "w") as file:
                 default_config = {"Users": []}
                 if user_path:
-                    default_config["Users"].append({"Username": username, "Path": self._path})
+                    default_config["Users"].append({"Username": "Username", "Path": "Path"})
                 json.dump(default_config, file, indent=2)
 
         
