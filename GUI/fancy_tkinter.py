@@ -92,7 +92,7 @@ class AccountLabels(Label):
 
     def popup_menu(self):
         self.menu = Menu(self.root, tearoff=0)
-        self.menu.add_command(label="Edit", command=self.file.edit)
+        self.menu.add_command(label="Edit", command=self.edit_entry)
         self.menu.add_command(label="Remove", command=self.remove)
 
 

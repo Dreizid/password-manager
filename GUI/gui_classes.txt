@@ -1,0 +1,60 @@
+BasePage
+- master: masterFrame
+- file: SaveFile
+- loginUsername: string
+- loginPassword: string
+- packedFrames: list
+- titlePart(title, kwargs(font, fontsize)): Creates title
+- buttonPart(*args, **kwargs): args - Used for [buttonName, buttonCommand], kwargs - Used for button width and font
+- packAll(): Packs all frames
+- forgetAll(): Forgets all packed frames (Used for back button)
+- previousPage(): Uses forgetAll and packAll to go back to previous page
+- color(kwargs(background, foreground, textColor)): Sets the color for the page
+
+    LoginPage
+    - TOGGLE_PASSWORD: boolean
+    - REGISTER_WARNING: boolean
+    - CREDENTIAL_WARNING: boolean
+    - entryPart(): Creates labeled entries for [loginUsername, loginPassword]
+    - warningPart(): Warns the user for already regisitered username/invalid password
+    - loginEvent(): Triggers when login button is pressed
+    - authenticateCredentials(): Authenticates [username, password]
+    - loginSuccess(): Triggers when authenticateCredentials returns True
+    - register(): Triggers when register button is clicked; Calls registration page
+    - togglePassword: Toggles password visibility
+
+            RegistrationPage
+            - entryPart(): Creates labeled entries for [registerUsername, registerPassword, confirmPassword]
+            - warningPart(): Warns the user if either username/password is invalid or user is already regisitered
+            - registerEvent(): Triggers registration when register button is clicked
+
+    HomePage
+    - loadList(kwargs(font)): Loads the ListBox
+    - buttonPart(): Loads in the buttons [Logout, addWebsite]
+    - onClick(): Triggers forgetAll and loads in the invididual account page
+    - addWebsite(): Triggers forgetAll and loads in AddWebsite page
+    - logout(): Triggers forgetAll
+    - noAccounts(): Incase of no accounts displays "No accounts"
+
+            AddWebsite
+            - entryPart(): Loads in the LabeledEntry for [Website, AccountName, Password]
+            - buttonPart(): Loads in the buttons [Back, Add Website]
+    
+            AccountPage
+            - accounts: list
+            - scroll(): Create's the scroll functionality
+            - loadAccounts(): Load's user's accounts for specific Website
+            - callEdit(): Calls for edit page
+            - addAccount(): Calls for add account page
+
+                    AddAcountPage
+                    - entryPart(): Adds the LabeledEntry
+                    - saveAccount(): Called when save account button is pressed; Saves the account
+                    - genPass(): Generates Password
+
+                    EditPage
+                    - entryPart(): Creates labeled entries
+
+    
+
+
